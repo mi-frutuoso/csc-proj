@@ -32,11 +32,8 @@ Here we define which files correspond to which entity.
 ## Administrator
 
 ### `admin.sh`
-Performs Administrator's tasks #1, #2, #3, #4, #5
-May be executed by:
-````
-sudo bash admin.sh
-````
+Performs Administrator's tasks #1, #2, #3, #4, #5, #7
+
 This includes the creation of all the folders needed for all entities.
 
 ## Voter
@@ -56,6 +53,11 @@ cenas
 Here we explain how to setup the application, the commands needed to execute.
 
 ## Administrator
+
+May be executed by:
+````
+sudo bash admin.sh
+````
 
 ## Voter
 
