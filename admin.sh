@@ -22,17 +22,19 @@ mkdir Tally
 mkdir Trustees 
 mkdir Voters
 
+cp key_generator Admin
+cp weights_encryptor Admin
+
 # step 1) Generate a root CA certificate and private key
 cd Admin
 sudo openssl genrsa -des3 -passout pass:admin -out my-ca.key 2048 
 sudo openssl req -new -x509 -days 3650 -key my-ca.key -passin pass:admin -out my-ca.crt -subj "/C=PT/ST=Lisbon/L=Lisbon/O=IST/OU=CSC/CN=CSC/emailAddress=CSCgp13"
 
 # step 4) Generate the election key - a special homomorphic key pair
-openssl genrsa -out election.key 1024
-openssl rsa -in election.key -pubout -out election_public.key
+./key_generator
 
 cd ../Voters
-for i in {1..$NVOTERS}
+for ((i=1;i<=${NVOTERS};i++))
 do
     dirname="voter${i}"
     pemname="voter${i}.pem"
@@ -59,18 +61,18 @@ cd ../Admin
 # TODO: sss
 
 # generate Trustees folders and distribute
-cd ../Trustees
-for i in {1..$NTRUSTEES}
-do
-    dirname="trustee${i}"
-    sharename="share${i}.extensao" #TODO: change extensao to correct file type
-    mkdir -p -- "$dirname"
+# cd ../Trustees
+# for i in {1..$NTRUSTEES}
+# do
+#     dirname="trustee${i}"
+#     sharename="share${i}.extensao" #TODO: change extensao to correct file type
+#     mkdir -p -- "$dirname"
 
-    cp ../Admin/$sharename $dirname
-done
+#     cp ../Admin/$sharename $dirname
+# done
 
 cd ../Admin
-rm -r election.key
+# rm -r election_private.key
 
 # step 7) Assigns a weight to each voter, encrypts it with the election public key and publishes the list of encrypted weights.
 touch weightlist.txt # useful for debug
@@ -78,12 +80,13 @@ touch cryptWeights.txt
 for ((i=1;i<=${NVOTERS};i++))
 do
     # random number 1~${WEIGHTMAX}
-    printf "$((RANDOM*${WEIGHTMAX}/${RANDMAX}+${WEIGHTMIN}))\n" >> weight${i}.txt
-    cat weight${i}.txt >> weightlist.txt # useful for debug
-    openssl rsautl -encrypt -pubin -inkey election_public.key -in weight${i}.txt -out encrypted${i}.txt
-    cat encrypted${i}.txt >> cryptWeights.txt
-    rm -r weight${i}.txt
-    rm -r encrypted${i}.txt
+    weight=$((RANDOM*${WEIGHTMAX}/${RANDMAX}+${WEIGHTMIN}))
+    printf $weight >> weight.txt
+    cat weight.txt >> weightlist.txt # useful for debug
+    ./weights_encryptor weight
+    cat encrypted.txt >> cryptWeights.txt
+    rm -r weight.txt
+    rm -r encrypted.txt
 done
 
 #copy encrypted weigths list to Tally
