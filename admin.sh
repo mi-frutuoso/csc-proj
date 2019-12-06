@@ -6,12 +6,14 @@ declare -i NVOTERS=10
 
 ## Number of trustees
 declare -i NTRUSTEES=5
+declare -i THRESHOLD=4
 
 ## Vote weights
 declare -i WEIGHTMAX=5
 declare -i WEIGHTMIN=1
 ### RANDOM threshold
 declare -i RANDMAX=32767
+declare PASSWORD=password
 
 #########################
 # Setup entities' folders
@@ -24,6 +26,9 @@ mkdir Voters
 
 cp key_generator Admin
 cp weights_encryptor Admin
+cp Make_Shares Admin
+cp Join_Shares Counter
+cp counter.sh Counter
 
 # step 1) Generate a root CA certificate and private key
 cd Admin
@@ -58,21 +63,23 @@ done
 cd ../Admin
 
 # step 6) Split the election private key using Shamir’s secret sharing, distribute each of the shares by the trustees, and erase the private key.
-# TODO: sss
+sudo openssl enc -aes-256-cbc -in election_private.key -k $PASSWORD -pbkdf2 -out election_private_encrypted.key
+mv election_private_encrypted.key ../Counter
+./Make_Shares $NTRUSTEES $THRESHOLD $PASSWORD
 
 # generate Trustees folders and distribute
-# cd ../Trustees
-# for i in {1..$NTRUSTEES}
-# do
-#     dirname="trustee${i}"
-#     sharename="share${i}.extensao" #TODO: change extensao to correct file type
-#     mkdir -p -- "$dirname"
+cd ../Trustees
+for ((i=1;i<=${NTRUSTEES};i++))
+do
+    dirname="trustee${i}"
+    sharename="Share${i}.txt" #TODO: change extensao to correct file type
+    mkdir -p -- "$dirname"
 
-#     cp ../Admin/$sharename $dirname
-# done
+    mv ../Admin/$sharename $dirname
+done
 
 cd ../Admin
-# rm -r election_private.key
+rm -r election_private.key
 
 # step 7) Assigns a weight to each voter, encrypts it with the election public key and publishes the list of encrypted weights.
 touch weightlist.txt # useful for debug

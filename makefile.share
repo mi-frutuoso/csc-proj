@@ -1,0 +1,5 @@
+CC=gcc
+CFLAGS=-I.
+
+Make_Shares: Make_Shares.o sss.o randombytes.o hazmat.o tweetnacl.o
+	$(CC) -o Make_Shares Make_Shares.o sss.o randombytes.o hazmat.o tweetnacl.o

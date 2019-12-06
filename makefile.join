@@ -1,0 +1,5 @@
+CC=gcc
+CFLAGS=-I.
+
+Join_Shares: Join_Shares.o sss.o randombytes.o hazmat.o tweetnacl.o
+	$(CC) -o Join_Shares Join_Shares.o sss.o randombytes.o hazmat.o tweetnacl.o
