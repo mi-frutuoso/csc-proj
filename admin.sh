@@ -58,6 +58,10 @@ do
 
     # step 5) Install on each voter app: c. The election public key
     cp ../../Admin/election_public.key .
+
+    # copy files to each voter folder
+    cp ../../voter.sh .
+    cp ../../weights_encryptor .
     cd ..
 done
 cd ../Admin
@@ -72,7 +76,7 @@ cd ../Trustees
 for ((i=1;i<=${NTRUSTEES};i++))
 do
     dirname="trustee${i}"
-    sharename="Share${i}.txt" #TODO: change extensao to correct file type
+    sharename="Share${i}.txt"
     mkdir -p -- "$dirname"
 
     mv ../Admin/$sharename $dirname
@@ -83,18 +87,18 @@ rm -r election_private.key
 
 # step 7) Assigns a weight to each voter, encrypts it with the election public key and publishes the list of encrypted weights.
 touch weightlist.txt # useful for debug
-touch cryptWeights.txt
 for ((i=1;i<=${NVOTERS};i++))
 do
     # random number 1~${WEIGHTMAX}
     weight=$((RANDOM*${WEIGHTMAX}/${RANDMAX}+${WEIGHTMIN}))
-    printf $weight >> weight.txt
+    printf "${weight}\n" >> weight.txt
     cat weight.txt >> weightlist.txt # useful for debug
-    ./weights_encryptor weight
-    cat encrypted.txt >> cryptWeights.txt
     rm -r weight.txt
-    rm -r encrypted.txt
-done
 
-#copy encrypted weigths list to Tally
-cp cryptWeights.txt ../Tally
+    ./weights_encryptor $weight # --> generate encrypted.txt
+    # rename file
+    weightFile="cryptWeight_voter${i}.txt"
+    mv encrypted.txt ${weightFile}
+    #copy encrypted weight to Tally (or move)
+    cp ${weightFile} ../Tally
+done
