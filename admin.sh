@@ -41,10 +41,19 @@ sudo openssl req -new -x509 -days 3650 -key my-ca.key -passin pass:admin -out my
 cd ../Voters
 for ((i=1;i<=${NVOTERS};i++))
 do
-    dirname="voter${i}"
-    pemname="voter${i}.pem"
-    csrname="voter${i}.csr"
-    crtname="voter${i}.crt"
+    if [ "$i" -lt "10" ]; then
+        j="00${i}"
+    else
+        if [ "$i" -lt "100" ]; then
+            j="0${i}"
+        else
+            j=i
+        fi
+    fi
+    dirname="voter${j}"
+    pemname="voter${j}.pem"
+    csrname="voter${j}.csr"
+    crtname="voter${j}.crt"
     mkdir -p -- "$dirname"
     cd $dirname
 
@@ -75,7 +84,7 @@ mv election_private_encrypted.key ../Counter
 cd ../Trustees
 for ((i=1;i<=${NTRUSTEES};i++))
 do
-    dirname="trustee${i}"
+    dirname="trustee${i}"    
     sharename="Share${i}.txt"
     mkdir -p -- "$dirname"
 
@@ -89,6 +98,15 @@ rm -r election_private.key
 touch weightlist.txt # useful for debug
 for ((i=1;i<=${NVOTERS};i++))
 do
+    if [ "$i" -lt "10" ]; then
+        j="00${i}"
+    else
+        if [ "$i" -lt "100" ]; then
+            j="0${i}"
+        else
+            j=i
+        fi
+    fi
     # random number 1~${WEIGHTMAX}
     weight=$((RANDOM*${WEIGHTMAX}/${RANDMAX}+${WEIGHTMIN}))
     printf "${weight}\n" >> weight.txt
@@ -97,7 +115,7 @@ do
 
     ./weights_encryptor $weight # --> generate encrypted.txt
     # rename file
-    weightFile="cryptWeight_voter${i}.txt"
+    weightFile="cryptWeight_voter${j}.txt"
     mv encrypted.txt ${weightFile}
     #copy encrypted weight to Tally (or move)
     cp ${weightFile} ../Tally
