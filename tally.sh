@@ -2,7 +2,21 @@
 
 # Define useful variables
 ## Number of voters
-declare -i NVOTERS=10
+NVOTERS=0
+
+input="../parameters.txt"
+while IFS= read -r line
+do
+    parameter=$(echo "${line}" | cut -d "=" -f1)
+    if [ "${parameter}" = "NVOTERS" ]; then
+        value=$(echo "${line}" | cut -d "=" -f2)
+        NVOTERS=$value
+    fi
+done < "$input"
+
+
+# access ballot box
+cd ../BallotBox
 
 ## Number of candidates (as perceived from the voters -- which can be wrong)
 nCandidates=0

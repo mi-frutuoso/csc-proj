@@ -1,19 +1,49 @@
 #!/bin/bash
 
-# Define useful variables
+# Define useful variables, read from file parameters.txt
 ## Number of voters
-declare -i NVOTERS=10
+NVOTERS=0
 
 ## Number of trustees
-declare -i NTRUSTEES=5
-declare -i THRESHOLD=4
+NTRUSTEES=0
+THRESHOLD=0
 
 ## Vote weights
-declare -i WEIGHTMAX=5
-declare -i WEIGHTMIN=1
+WEIGHTMAX=0
+WEIGHTMIN=0
 ### RANDOM threshold
-declare -i RANDMAX=32767
-declare PASSWORD=password
+RANDMAX=0
+PASSWORD=0
+
+input="parameters.txt"
+while IFS= read -r line
+do
+    parameter=$(echo "${line}" | cut -d "=" -f1)
+    value=$(echo "${line}" | cut -d "=" -f2)
+    case ${parameter} in
+        NVOTERS)
+            NVOTERS=$value
+            ;;
+        NTRUSTEES)
+            NTRUSTEES=$value
+            ;;
+        THRESHOLD)
+            THRESHOLD=$value
+            ;;
+        WEIGHTMAX)
+            WEIGHTMAX=$value
+            ;;
+        WEIGHTMIN)
+            WEIGHTMIN=$value
+            ;;
+        RANDMAX)
+            RANDMAX=$value
+            ;;
+        PASSWORD)
+            PASSWORD=$value
+            ;;
+    esac
+done < "$input"
 
 #########################
 # Setup entities' folders
@@ -29,6 +59,7 @@ cp weights_encryptor Admin
 cp Make_Shares Admin
 cp Join_Shares Counter
 cp counter.sh Counter
+cp tally.sh Tally
 
 # step 1) Generate a root CA certificate and private key
 cd Admin
