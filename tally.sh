@@ -115,7 +115,7 @@ do
             if [ "$signDate" -gt "$validVote" ]; then
                 # remove the oldest vote
                 if [ "$validVote" -ne "0" ]; then
-                    echo "Removed voter${j}'s vote for candidate{j} on ${validVote}" #debug
+                    echo "Removed voter${j}'s vote for candidate${j} on ${validVote}" #debug
                     rm "crypt_voter${j}_cand${m}_${validVote}.txt" 
                     rm "signature_voter${j}_${m}_${validVote}.txt" 
                 fi
@@ -133,4 +133,78 @@ done
 
 # 3) Computes homomorphically the checksum for each vote and adds it to an accumulator
 # 4) Compute homomorphically the result of the election
+
+for ((i=1;i<=${nCandidates};i++))
+do
+    if [ "$i" -lt "10" ]; then
+        j="00${i}"
+    else
+        if [ "$i" -lt "100" ]; then
+            j="0${i}"
+        else
+            j=i
+        fi
+    fi  
+
+    total_votes="total_votes_cand${j}.txt"
+    total_votes_temp="total_votes_cand${j}_temp.txt"
+
+    for ((k=1;k<=${NVOTERS};k++))
+    do
+        if [ "$k" -lt "10" ]; then
+            m="00${k}"
+        else
+            if [ "$k" -lt "100" ]; then
+                m="0${k}"
+            else
+                m=k
+            fi
+        fi
+
+        checksum_voter="checksum_voter${m}.txt"
+        checksum_voter_temp="checksum_voter${m}_temp.txt"
+
+        vote=$(find -name "crypt_voter${m}_cand${j}*")
+        if [ -z "$vote" ]
+        then
+            echo "No vote from voter${m} to candidate${j}." #debug
+            continue
+        else
+            echo "voter${m} has vote for candidate${j}." #debug
+        fi
+
+        voteName=$(echo "${vote}" | cut -d "/" -f2)
+        weight_file="cryptWeight_voter${m}.txt"
+
+        #Programa ./Addvotes 0 $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+
+        if [ "$k" -eq "1" ]
+        then
+            if [ "$i" -eq "1" ]
+            then
+                ./calculator "0" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+            else
+                cp $checksum_voter $checksum_voter_temp
+                rm -r $checksum_voter
+                ./calculator "2" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                rm -r $checksum_voter_temp
+            fi
+        else
+            cp $total_votes $total_votes_temp
+            rm -r $total_votes
+            if [ "$i" -eq "1" ]
+            then
+                ./calculator "1" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+            else
+                cp $checksum_voter $checksum_voter_temp
+                rm -r $checksum_voter
+                ./calculator "3" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                rm -r $checksum_voter_temp
+            fi
+            rm -r $total_votes_temp
+        fi
+    done
+
+done
+
 # 5) Sends the election results and the checksum accumulator to the counter
