@@ -15,9 +15,17 @@ fi
 
 # get nCandidates
 echo "Insert number of candidates: "
-read nCandidates
+read -r nCandidates
+
+if [[ ! "$nCandidates" =~ ^[[:digit:]]+$ ]] || [[ ! $nCandidates =~ ^[[:alnum:]]+$ ]] || [[ "$nCandidates" -eq "0" ]]; then
+    echo "Insert a valid positive integer number!"
+    exit 1
+fi
 
 # add read robustness
+
+# add day + time
+datetime=$(date +'%Y%m%d%H%M%S')
 
 # initialize output files
 touch votelist.txt # useful for debug
@@ -33,8 +41,17 @@ do
             j=i
         fi
     fi
-    echo "Insert your vote for candidate ${j}: "
-    read vote
+
+    while true
+    do
+        echo "Insert your vote for candidate ${j}: "
+        read -r vote
+        if [[ ! "$vote" =~ ^[[:digit:]]+$ ]] || [[ ! $vote =~ ^[[:alnum:]]+$ ]]; then
+            echo "Insert a valid integer number!"
+        else
+            break
+        fi
+    done
     printf "${vote}\n" >> vote.txt
     cat vote.txt >> votelist.txt # useful for debug
     rm -r vote.txt
@@ -42,8 +59,6 @@ do
     # step 2) Encrypts the vote using the election public key and Microsoft seal library;
     ./weights_encryptor $vote # --> generate encrypted.txt
 
-    # add day + time
-    datetime=$(date +'%Y%m%d%H%M%S')
     candidateVoteFile="crypt_${voter}_cand${j}_${datetime}.txt"
     # rename file
     mv encrypted.txt $candidateVoteFile

@@ -43,6 +43,10 @@ do
     else
         echo "voter${j} has voted." #debug
     fi
+
+    # variable to store date of latest vote from voter i (to exclude the older ones)
+    lastVoteDate=0
+
     voterPublicKey="voter${j}_public.key"
     for itemList in $listVoter_j
     do
@@ -57,9 +61,13 @@ do
         signDate=$(echo "${signDate_lixo}" | cut -d "." -f1)
         #echo "data: ${signDate}"
 
+        # update latest vote date
+        if [ "$signDate" -gt "$lastVoteDate" ]; then
+            lastVoteDate=$signDate
+        fi
+
         filename="crypt_voter${j}_cand${candidate}_${signDate}.txt"
         
-        #echo "vou verificar ${filename}"
         # verify signature
         openssl base64 -d -in ${signatureName} -out sign.sha256
         verify=$(openssl dgst -sha256 -verify ${voterPublicKey} -signature sign.sha256 ${filename})
@@ -91,7 +99,6 @@ do
             fi
         fi
         # index translation: i->j and j->m
-        validVote=0
         listVotesCand_i=$(find -name "crypt_voter${j}_cand${m}*")
         if [ -z "$listVotesCand_i" ]
         then
@@ -112,16 +119,7 @@ do
             #echo "data ${signDate_lixo}" #debug
             signDate=$(echo "${signDate_lixo}" | cut -d "." -f1)
             #echo "data: ${signDate}" #debug
-            if [ "$signDate" -gt "$validVote" ]; then
-                # remove the oldest vote
-                if [ "$validVote" -ne "0" ]; then
-                    echo "Removed voter${j}'s vote for candidate${j} on ${validVote}" #debug
-                    rm "crypt_voter${j}_cand${m}_${validVote}.txt" 
-                    rm "signature_voter${j}_${m}_${validVote}.txt" 
-                fi
-                validVote=$signDate
-                #echo "new max ${validVote}" #debug
-            else
+            if [ "$signDate" -ne "$lastVoteDate" ]; then
                 # remove this vote
                 echo "Removed voter${j}'s vote for candidate${m} on ${signDate}." #debug
                 rm ${voteName}
@@ -178,8 +176,6 @@ do
 
         voteName=$(echo "${vote}" | cut -d "/" -f2)
         weight_file="../Tally/cryptWeight_voter${m}.txt"
-
-        #Programa ./Addvotes 0 $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
 
         if [ "$k" -eq "1" ]
         then
