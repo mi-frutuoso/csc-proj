@@ -149,6 +149,8 @@ do
     total_votes="total_votes_cand${j}.txt"
     total_votes_temp="total_votes_cand${j}_temp.txt"
 
+    no_voter_flag=0
+
     for ((k=1;k<=${NVOTERS};k++))
     do
         if [ "$k" -lt "10" ]; then
@@ -168,6 +170,7 @@ do
         if [ -z "$vote" ]
         then
             echo "No vote from voter${m} to candidate${j}." #debug
+            no_voter_flag=1
             continue
         else
             echo "voter${m} has vote for candidate${j}." #debug
@@ -190,20 +193,55 @@ do
                 rm -r $checksum_voter_temp
             fi
         else
-            cp $total_votes $total_votes_temp
-            rm -r $total_votes
+            if [ "$no_voter_flag" -eq "0" ]
+            then
+                cp $total_votes $total_votes_temp
+                rm -r $total_votes
+            fi
             if [ "$i" -eq "1" ]
             then
-                ../Tally/calculator "1" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                if [ "$no_voter_flag" -eq "0" ]
+                then
+                    ../Tally/calculator "1" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                else
+                    ../Tally/calculator "0" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                fi
             else
                 cp $checksum_voter $checksum_voter_temp
                 rm -r $checksum_voter
-                ../Tally/calculator "3" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                if [ "$no_voter_flag" -eq "0" ]
+                then
+                    ../Tally/calculator "3" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                else
+                    ../Tally/calculator "2" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                fi
                 rm -r $checksum_voter_temp
             fi
-            rm -r $total_votes_temp
+            if [ "$no_voter_flag" -eq "0" ]
+            then
+                rm -r $total_votes_temp
+            fi
         fi
     done
+
+done
+
+for ((k=1;k<=${NVOTERS};k++))
+do
+    if [ "$k" -lt "10" ]; then
+        m="00${k}"
+    else
+        if [ "$k" -lt "100" ]; then
+            m="0${k}"
+        else
+            m=k
+        fi
+    fi
+
+    checksum_voter="checksum_voter${m}.txt"
+    checksum_voter_temp="checksum_voter${m}_temp.txt"
+
+    #FAZER SCRIPT PARA SOMAR TODOS OS CHECKSUMS
 
 done
 
