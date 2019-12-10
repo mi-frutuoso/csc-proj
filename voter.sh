@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# step 0) Verify the validity of the voter certificate
+voter=$(basename "`pwd`")
+
+verify=$(openssl verify -verbose -CAfile my-ca.crt "${voter}.crt")
+if [ "${verify}" = "${voter}.crt: OK" ]; then
+    echo "Verified ${voter} certificate OK"
+else
+    echo "Verification ${voter} certificate Failure"
+    exit 1
+fi
+
 # step 1) Reads the voter’s intentions from the command line;
 
 # get nCandidates
@@ -9,7 +20,6 @@ read nCandidates
 # add read robustness
 
 # initialize output files
-voter=$(basename "`pwd`")
 touch votelist.txt # useful for debug
 # get votes for each candidate
 for ((i=1;i<=${nCandidates};i++))

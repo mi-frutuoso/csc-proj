@@ -174,7 +174,7 @@ do
         fi
 
         voteName=$(echo "${vote}" | cut -d "/" -f2)
-        weight_file="cryptWeight_voter${m}.txt"
+        weight_file="../Tally/cryptWeight_voter${m}.txt"
 
         #Programa ./Addvotes 0 $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
 
@@ -182,11 +182,11 @@ do
         then
             if [ "$i" -eq "1" ]
             then
-                ./calculator "0" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                ../Tally/calculator "0" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
             else
                 cp $checksum_voter $checksum_voter_temp
                 rm -r $checksum_voter
-                ./calculator "2" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                ../Tally/calculator "2" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
                 rm -r $checksum_voter_temp
             fi
         else
@@ -194,11 +194,11 @@ do
             rm -r $total_votes
             if [ "$i" -eq "1" ]
             then
-                ./calculator "1" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                ../Tally/calculator "1" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
             else
                 cp $checksum_voter $checksum_voter_temp
                 rm -r $checksum_voter
-                ./calculator "3" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
+                ../Tally/calculator "3" $total_votes $total_votes_temp $voteName $weight_file $checksum_voter $checksum_voter_temp
                 rm -r $checksum_voter_temp
             fi
             rm -r $total_votes_temp
