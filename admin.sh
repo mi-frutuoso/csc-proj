@@ -61,6 +61,7 @@ cp Join_Shares Counter
 cp counter.sh Counter
 cp tally.sh Tally
 cp calculator Tally
+cp sumcheck Tally
 
 # step 1) Generate a root CA certificate and private key
 cd Admin

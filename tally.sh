@@ -216,12 +216,17 @@ do
             if [ "$no_voter_flag" -eq "0" ]
             then
                 rm -r $total_votes_temp
+            else
+                no_voter_flag=0
             fi
         fi
     done
 
+    mv $total_votes ../Counter #Move the results of each candidate to the voter
+
 done
 
+no_checksum_flag=1
 for ((k=1;k<=${NVOTERS};k++))
 do
     if [ "$k" -lt "10" ]; then
@@ -235,10 +240,30 @@ do
     fi
 
     checksum_voter="checksum_voter${m}.txt"
-    checksum_voter_temp="checksum_voter${m}_temp.txt"
+    checksum_total="checksum_total.txt"
+    checksum_total_temp="checksum_total_temp.txt"
 
-    #FAZER SCRIPT PARA SOMAR TODOS OS CHECKSUMS
+    checksum_exist=$(find -name "checksum_voter${m}.txt")
+    if [ -z "$checksum_exist" ]
+    then
+        echo "No votes from voter${m}." #debug
+        continue
+    else
+        echo "voter${m} has voted." #debug
+        if [ "$no_checksum_flag" -eq "1" ]
+        then
+            no_checksum_flag=0
+            ../Tally/sumcheck "0" $checksum_voter $checksum_total $checksum_total_temp
+        else
+            cp $checksum_total $checksum_total_temp
+            rm -r $checksum_total
+            ../Tally/sumcheck "1" $checksum_voter $checksum_total $checksum_total_temp
+            rm -r $checksum_total_temp
+        fi
+    fi
 
 done
 
 # 5) Sends the election results and the checksum accumulator to the counter
+
+mv $checksum_total ../Counter
