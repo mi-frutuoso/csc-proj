@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
 
 void decrypt(char* input_file, char* output_file, char* secret_key_file)
 {
+    int value;
+
     EncryptionParameters parms(scheme_type::BFV);
     size_t poly_modulus_degree = 4096;
     parms.set_poly_modulus_degree(poly_modulus_degree);
@@ -40,17 +42,16 @@ void decrypt(char* input_file, char* output_file, char* secret_key_file)
     input.unsafe_load(context, input_file_open);
     input_file_open.close();
 
-    Plaintext plain_result, plain_result_2;
+    Plaintext plain_result;
     decryptor.decrypt(input, plain_result);
 
     IntegerEncoder encoder(context);
 
-    plain_result_2 = encoder.decode_int32(plain_result);
-
+    value = encoder.decode_int32(plain_result);
 
     ofstream output_file_open;
     output_file_open.open(output_file);
-    plain_result_2.save(output_file_open);
+    output_file_open << value;
     output_file_open.close();
 
 }
