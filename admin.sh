@@ -62,6 +62,7 @@ cp counter.sh Counter
 cp tally.sh Tally
 cp calculator Tally
 cp sumcheck Tally
+cp decrypt Counter
 
 # step 1) Generate a root CA certificate and private key
 cd Admin
