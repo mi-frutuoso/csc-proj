@@ -40,13 +40,17 @@ void decrypt(char* input_file, char* output_file, char* secret_key_file)
     input.unsafe_load(context, input_file_open);
     input_file_open.close();
 
-    Plaintext plain_result;
+    Plaintext plain_result, plain_result_2;
     decryptor.decrypt(input, plain_result);
+
+    IntegerEncoder encoder(context);
+
+    plain_result_2 = encoder.decode_int32(plain_result);
 
 
     ofstream output_file_open;
     output_file_open.open(output_file);
-    plain_result.save(output_file_open);
+    plain_result_2.save(output_file_open);
     output_file_open.close();
 
 }
