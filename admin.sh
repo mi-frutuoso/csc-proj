@@ -129,6 +129,12 @@ cd ../Admin
 rm -r election_private.key
 
 # step 7) Assigns a weight to each voter, encrypts it with the election public key and publishes the list of encrypted weights.
+
+# generate public key to send to tally
+publicKeyFile="weight_public.key"
+openssl rsa -in my-ca.key -passin pass:admin -pubout -out $publicKeyFile
+mv $publicKeyFile ../Tally
+
 touch weightlist.txt # useful for debug
 for ((i=1;i<=${NVOTERS};i++))
 do
@@ -150,7 +156,14 @@ do
     ./weights_encryptor $weight # --> generate encrypted.txt
     # rename file
     weightFile="cryptWeight_voter${j}.txt"
+    weightFile_sign="sign_cryptWeight_voter${j}.txt"
     mv encrypted.txt ${weightFile}
-    #copy encrypted weight to Tally (or move)
+    # signs the weight EXTRA FEATURE
+    openssl dgst -sha256 -sign my-ca.key -passin pass:admin -out sign.sha256 $weightFile    # binary file
+    openssl base64 -in sign.sha256 -out $weightFile_sign                                  # base64 format
+    rm sign.sha256
+
+    #copy encrypted weight and signature to Tally (or move)
     cp ${weightFile} ../Tally
+    mv $weightFile_sign ../Tally
 done

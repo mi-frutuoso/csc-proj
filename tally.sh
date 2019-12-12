@@ -14,6 +14,10 @@ do
     fi
 done < "$input"
 
+# Generate a pair of public and private keys to sign documents
+openssl genrsa -des3 -passout pass:tally -out tally_private.key 2048
+openssl rsa -in tally_private.key -passin pass:tally -pubout -out tally_public.key
+mv tally_public.key ../Counter
 
 # access ballot box
 cd ../BallotBox
@@ -176,6 +180,20 @@ do
 
         voteName=$(echo "${vote}" | cut -d "/" -f2)
         weight_file="../Tally/cryptWeight_voter${m}.txt"
+        weightFile_sign="../Tally/sign_cryptWeight_voter${m}.txt"
+        weightPublicKeyFile="../Tally/weight_public.key"
+
+        # Verify the signatures of the weights to see if they come from the admin
+        openssl base64 -d -in ${weightFile_sign} -out sign.sha256
+        verify=$(openssl dgst -sha256 -verify ${weightPublicKeyFile} -signature sign.sha256 ${weight_file})
+        rm sign.sha256
+        if [ "${verify}" = "Verified OK" ]; then
+            echo "Verified ${weight_file} OK"
+        else
+            echo "Verification Failure - ${weight_file}"
+            rm ${weight_file}
+            continue
+        fi
 
         if [ "$k" -eq "1" ]
         then
@@ -222,7 +240,13 @@ do
         fi
     done
 
+    # signs the total votes for a candidate EXTRA FEATURE
+    total_votes_sign="sign_total_votes_cand${j}.txt"
+    openssl dgst -sha256 -sign ../Tally/tally_private.key -passin pass:tally -out sign.sha256 $total_votes    # binary file
+    openssl base64 -in sign.sha256 -out $total_votes_sign                                  # base64 format
+    rm sign.sha256
     mv $total_votes ../Counter #Move the results of each candidate to the voter
+    mv $total_votes_sign ../Counter
 
 done
 
@@ -265,5 +289,10 @@ do
 done
 
 # 5) Sends the election results and the checksum accumulator to the counter
-
+# signs the checksum EXTRA FEATURE
+sign_checksum_total="sign_checksum_total.txt"
+openssl dgst -sha256 -sign ../Tally/tally_private.key -passin pass:tally -out sign.sha256 $checksum_total    # binary file
+openssl base64 -in sign.sha256 -out $sign_checksum_total                                  # base64 format
+rm sign.sha256
 mv $checksum_total ../Counter
+mv $sign_checksum_total ../Counter

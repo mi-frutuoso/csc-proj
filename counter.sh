@@ -74,7 +74,18 @@ value=$(cat password.txt)
 #echo "$value" #debug
 sudo openssl enc -d -aes-256-cbc -in election_private_encrypted.key -k $value -pbkdf2 -out election_private.key # -> will print key
 
-# Decrypt total checksum
+# Decrypt total checksum after validation of signature
+openssl base64 -d -in sign_checksum_total.txt -out sign.sha256
+verify=$(openssl dgst -sha256 -verify tally_public.key -signature sign.sha256 checksum_total.txt)
+rm sign.sha256
+if [ "${verify}" = "Verified OK" ]; then
+    echo "Verified Checksum Signature OK"
+else
+    echo "Verification Failure - Checksum"
+    echo "Corrupted election - checksum validity failed."
+    exit 1
+fi
+
 ./decrypt checksum_total.txt decrypted_checksum_total.txt election_private.key
 typeset -i checksum_total=$(cat decrypted_checksum_total.txt)
 #echo "checksum_total ${checksum_total}" #debug
@@ -114,6 +125,25 @@ do
         continue
     fi
     #echo "file ${j} OK." #debug
+
+    # Verify the signature of the total votes for each candidate and decrypt
+    sign_cryptTotalVotes_i=$(find -name "sign_total_votes_cand${j}.txt")
+    if [ -z "$sign_cryptTotalVotes_i" ]
+    then
+        #echo "file ${j} does not exist" #debug
+        continue
+    fi
+    openssl base64 -d -in $sign_cryptTotalVotes_i -out sign.sha256
+    verify=$(openssl dgst -sha256 -verify tally_public.key -signature sign.sha256 $cryptTotalVotes_i)
+    rm sign.sha256
+    if [ "${verify}" = "Verified OK" ]; then
+        echo "Verified Total Votes for candidate${j} Signature OK"
+    else
+        echo "Verification Failure - Total Votes for candidate${j}"
+        echo "Corrupted election - Total Votes for candidate${j} validity failed."
+        exit 1
+    fi
+
     ./decrypt $cryptTotalVotes_i $outputFile election_private.key
     typeset -i votes_candidate_i=$(cat ${outputFile})
     echo "candidate${j} --> ${votes_candidate_i} votes"
