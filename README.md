@@ -18,17 +18,18 @@ This CSC Project was developed by Group 13, composed by the students:
 ## Contents
 
 - [Entity Files](#entity-files)
-  - [Administrator](#administrator-::-`admin.sh`)
-  - [Voter](#voter-::-`voter.sh`)
+  - [Administrator](#administrator--adminsh)
+  - [Voter](#voter--votersh)
   - [Ballot box](#ballot-box)
-  - [Tally official](#tally-official-::-`tally.sh`)
-  - [Counter](#counter-::-`counter.sh`)
+  - [Tally official](#tally-official--tallysh)
+  - [Counter](#counter--countersh)
   - [Trustees](#trustees)
 - [Running the app](#running-the-app)
-  - [Step 1: Run Administrator](#Step-1-::-Run-Administrator)
-  - [Step 2: Run Voter(s)](#Step-2-::-Run-Voters)
-  - [Step 3: Run Tally official](#Step-3-::-Run-Tally-official)
-  - [Step 4: Run Counter](#Step-4-::-Run-Counter)
+  - [Step 0: Setup election parameters](#step-0--setup-election-parameters)
+  - [Step 1: Run Administrator](#step-1--run-administrator)
+  - [Step 2: Run Voter(s)](#step-2--run-voters)
+  - [Step 3: Run Tally official](#step-3--run-tally-official)
+  - [Step 4: Run Counter](#step-4--run-counter)
 
 
 ## Entity files
