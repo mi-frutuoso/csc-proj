@@ -66,6 +66,16 @@ do
         fi
     fi
 
+    listVoter_j=$(find -name "signature_voter${j}*")
+    #echo "$listVoter_j" #debug
+    if [ -z "$listVoter_j" ]
+    then
+        echo "voter${j} has not voted yet." #debug
+        continue
+    else
+        echo "voter${j} has voted." #debug
+    fi
+
     verify=$(openssl verify -verbose -CAfile ../Tally/my-ca.crt "voter${j}.crt")
     if [ "${verify}" = "voter${j}.crt: OK" ]; then
         echo "Verified Voter${j} Certificate OK"
@@ -80,16 +90,6 @@ do
     if [ "${verify2}" != "${verify3}" ]; then
         echo "Verification Voter${j} Public Key Failure"
         clear_voter=1
-    fi
-
-    listVoter_j=$(find -name "signature_voter${j}*")
-    #echo "$listVoter_j" #debug
-    if [ -z "$listVoter_j" ]
-    then
-        echo "voter${j} has not voted yet." #debug
-        continue
-    else
-        echo "voter${j} has voted." #debug
     fi
 
     # variable to store date of latest vote from voter i (to exclude the older ones)

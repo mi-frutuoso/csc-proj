@@ -41,7 +41,7 @@ Corresponds to the very first steps of the setup of the election tally and build
 
   - creation of all the folders needed for all entities (`mkdir`);
 
-  - generation of the certification authority and certificates for voters (`openssl`);
+  - generation of the certification authority and certificates and keys for voters (`openssl`);
 
   - generation of election homomorphic key (`./key_generator`);
 
@@ -55,21 +55,28 @@ Corresponds to the very first steps of the setup of the election tally and build
     
     - `./Make_Shares` is a `C` executable program based on the `Shamir's secret sharing` library. It takes three input arguments: number of trustees, number of shares needed to restore a secret and the password key. Outputs the set of shares of the password key;
 
-  - assignment (in a random way) and encryption of weigths to each voter (`./weights_encryptor`).
+  - assignment (in a random way), encryption and sign of weigths to each voter (`./weights_encryptor`)(`openssl`);
     
-    - `./weights_encryptor` is a `C++` executable program based on the `Microsoft SEAL` library. It takes an integer as input argument. Outputs the homomorphic encryption of that integer.
+    - `./weights_encryptor` is a `C++` executable program based on the `Microsoft SEAL` library. It takes an integer as input argument. Outputs the homomorphic encryption of that integer;
+  - generation of key pairs and corresponding certificate for for the Tally (`openssl`).
 
 ### Voter :: `voter.sh`
 
 Command line application that determines the voting decision by the voter (user), but also performs these steps:
 
+  - verification of validity of the certificate and the keys (`openssl verify` and `openssl -modulus`);
+
+    -neede to verify the voter certificate based on the CA certificate (`my-ca.crt`) and then verify the public and private keys based on the voter certificate;
+
   - encryption of the votes (`./weights_encryptor`);
 
   - attach the day and time of the moment the vote was made (`date`);
 
-  - signature of votes (`openssl`);
+  - signature of votes using voter private key(`openssl -sign`);
 
-  - cast of votes to ballot (`cp`).
+  - cast of votes to ballot (`cp`);
+
+  - distribution of files among entities (`cp` and `mv`).
 
 This application is prepared for non-ideal voter users, as it only accepts integer numbers as input.
 
@@ -81,11 +88,15 @@ Folder responsible for storing the votes, containing these files:
 
   - signatures that sign each vote (`signature_voterAAA_BBB_YYYYmmddHHMMSS.txt`);
 
-  - voter's public keys (`voterAAA_public.key`).
+  - voter's public keys (`voterAAA_public.key`);
+
+  - voter's certificates (`voterAAA.crt`).
 
 ### Tally official :: `tally.sh`
 
 Application that is responsible for:
+
+  - verification of the authenticity of the the certificate, keys and weights received by the admin and the certificate and public key of the voters (`openssl verify` and `openssl -modulus`);
 
   - checking the signature of the votes, removing from the `/BallotBox` those whose signature fails (`openssl`, `find`, `rm`);
 
@@ -114,17 +125,23 @@ Application that is responsible for:
       - the name of the file containing the updated checksum accumulator value;
       - the name of the file containing the previous checksum accumulator value (acts as an auxiliary file);
 
-  - sending the election results and the checksum accumulator to the counter.
+  - signing the checksum and the election results with tally's private key (`openssl -sign`);
+
+  - sending the election results, the checksum accumulator and the tally private key to the counter.
 
 
 ### Counter :: `counter.sh`
 
 Bash script that performs these operations:
 
+  - validation of the authenticity of the tally's certificate and public key (`openssl verify` and `openssl -modulus`);
+
   - rebuild of the election private key (`./Join_Shares`);
     - `./Join_Shares` is a `C` executable program based on the `Shamir's secret sharing` library, dual of `./Make_Shares`. It takes two input arguments: number of trustees and number of shares needed to restore a secret. Outputs the restored password key;
 
   - restore the election private key by decrypting it with the rebuilt key (`openssl`);
+
+  - validation of the checksum accumulator and election results signatures;
 
   - decryption of the checksum accumulator (`./decrypt`);
     
@@ -241,6 +258,8 @@ $ sudo bash voter.sh
 ````
 
 After this, `/BallotBox` will have encrypted votes, signatures and public keys of the voters.
+
+Also inside each folder of voters will be the file `votelist.txt` containing the votes from that voter for debug purposes.
 
 ## Step 3 :: Run Tally official
 
