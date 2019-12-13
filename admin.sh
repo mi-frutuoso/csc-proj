@@ -69,6 +69,10 @@ cd Admin
 sudo openssl genrsa -des3 -passout pass:admin -out my-ca.key 2048 
 sudo openssl req -new -x509 -days 3650 -key my-ca.key -passin pass:admin -out my-ca.crt -subj "/C=PT/ST=Lisbon/L=Lisbon/O=IST/OU=CSC/CN=CSC/emailAddress=CSCgp13"
 
+# Distribute CA certificate to the tally and the counter
+cp my-ca.crt ../Tally
+cp my-ca.crt ../Counter
+
 # step 4) Generate the election key - a special homomorphic key pair
 ./key_generator
 
@@ -86,6 +90,7 @@ do
     fi
     dirname="voter${j}"
     pemname="voter${j}.pem"
+    public_key="voter${j}_public.key"
     csrname="voter${j}.csr"
     crtname="voter${j}.crt"
     mkdir -p -- "$dirname"
@@ -93,6 +98,7 @@ do
 
     # step 3) Generate a certificate for every voter
     openssl genrsa -out $pemname 1024
+    openssl rsa -in $pemname -pubout -out $public_key
     openssl req -new -key $pemname -out $csrname -subj "/C=PT/ST=Lisbon/L=Lisbon/O=IST/OU=CSC/CN=SC/emailAddress=CSCgp13"
     openssl x509 -req -in $csrname -out $crtname -sha1 -CA ../../Admin/my-ca.crt -CAkey ../../Admin/my-ca.key -CAcreateserial -days 3650 -passin pass:admin
 
@@ -130,7 +136,8 @@ rm -r election_private.key
 
 # step 7) Assigns a weight to each voter, encrypts it with the election public key and publishes the list of encrypted weights.
 
-# generate public key to send to tally
+# generate Weights Public Key to send to tally
+
 publicKeyFile="weight_public.key"
 openssl rsa -in my-ca.key -passin pass:admin -pubout -out $publicKeyFile
 mv $publicKeyFile ../Tally
@@ -167,3 +174,15 @@ do
     cp ${weightFile} ../Tally
     mv $weightFile_sign ../Tally
 done
+
+# Generate keys and certificate for Tally
+
+openssl genrsa -out tally_private.key 1024
+openssl rsa -in tally_private.key -pubout -out tally_public.key
+openssl req -new -key tally_private.key -out tally.csr -subj "/C=PT/ST=Lisbon/L=Lisbon/O=IST/OU=CSC/CN=SC/emailAddress=CSCgp13"
+openssl x509 -req -in tally.csr -out tally.crt -sha1 -CA my-ca.crt -CAkey my-ca.key -CAcreateserial -days 3650 -passin pass:admin
+
+mv tally_private.key ../Tally
+mv tally_public.key ../Tally
+cp tally.crt ../Tally
+cp tally.crt ../Counter

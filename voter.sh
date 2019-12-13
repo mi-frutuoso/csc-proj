@@ -11,6 +11,28 @@ else
     exit 1
 fi
 
+verify2=$(openssl x509 -noout -modulus -in "${voter}.crt" | openssl md5)
+verify3=$(openssl rsa -noout -modulus -in "${voter}.pem" | openssl md5)
+
+if [ "${verify2}" != "${verify3}" ]; then
+    echo "Verification 2 ${voter} certificate Failure"
+    exit 1
+fi
+
+verify4=$(openssl rsa -noout -modulus -in "${voter}_public.key" | openssl md5)
+
+if [ "${verify2}" != "${verify4}" ]; then
+    echo "Verification 3 ${voter} certificate Failure"
+    exit 1
+fi
+
+verify5=$(openssl req -noout -modulus -in "${voter}.csr" | openssl md5)
+
+if [ "${verify2}" != "${verify5}" ]; then
+    echo "Verification 4 ${voter} certificate Failure"
+    exit 1
+fi
+
 # step 1) Reads the voter’s intentions from the command line;
 
 # get nCandidates
@@ -83,8 +105,9 @@ do
 
 done
 
-# generate public key to send to ballot box
-publicKeyFile="${voter}_public.key"
-openssl rsa -in $privateKeyFile -pubout -out $publicKeyFile
+# Send public key and certificate to Ballot Box
+certificate="${voter}.crt"
+public_key="${voter}_public.key"
 
-mv $publicKeyFile ../../BallotBox
+mv $certificate ../../BallotBox
+mv $public_key ../../BallotBox

@@ -34,6 +34,24 @@ done < "$input"
 
 #########################
 
+#Check the validity of the Tally Certificate and Public Key
+verify=$(openssl verify -verbose -CAfile my-ca.crt tally.crt)
+if [ "${verify}" = "tally.crt: OK" ]; then
+    echo "Verified Tally certificate OK"
+else
+    echo "Verification Tally Certificate Failure"
+    exit 1
+fi
+
+verify2=$(openssl x509 -noout -modulus -in tally.crt | openssl md5)
+
+verify4=$(openssl rsa -noout -modulus -in tally_public.key | openssl md5)
+
+if [ "${verify2}" != "${verify4}" ]; then
+    echo "Verification 2 Tally Certificate Failure"
+    exit 1
+fi
+
 # Check if number of candidates exceeds NCANDIDATES
 otherCand=$((NCANDIDATES+1))
 #echo "other ${otherCand}" #debug

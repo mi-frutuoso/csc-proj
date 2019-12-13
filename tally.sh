@@ -14,10 +14,38 @@ do
     fi
 done < "$input"
 
-# Generate a pair of public and private keys to sign documents
-openssl genrsa -des3 -passout pass:tally -out tally_private.key 2048
-openssl rsa -in tally_private.key -passin pass:tally -pubout -out tally_public.key
-mv tally_public.key ../Counter
+#Verifying eveything with the CA certificate
+
+verify=$(openssl verify -verbose -CAfile my-ca.crt tally.crt)
+if [ "${verify}" = "tally.crt: OK" ]; then
+    echo "Verified Tally certificate OK"
+else
+    echo "Verification Tally Certificate Failure"
+    exit 1
+fi
+
+verify2=$(openssl x509 -noout -modulus -in tally.crt | openssl md5)
+verify3=$(openssl rsa -noout -modulus -in tally_private.key | openssl md5)
+
+if [ "${verify2}" != "${verify3}" ]; then
+    echo "Verification 2 Tally Certificate Failure"
+    exit 1
+fi
+
+verify4=$(openssl rsa -noout -modulus -in tally_public.key | openssl md5)
+
+if [ "${verify2}" != "${verify4}" ]; then
+    echo "Verification 3 Tally Certificate Failure"
+    exit 1
+fi
+
+verify5=$(openssl x509 -noout -modulus -in my-ca.crt | openssl md5)
+verify6=$(openssl rsa -noout -modulus -in weight_public.key | openssl md5)
+
+if [ "${verify5}" != "${verify6}" ]; then
+    echo "Verification Weights List Key Failure"
+    exit 1
+fi
 
 # access ballot box
 cd ../BallotBox
@@ -36,6 +64,22 @@ do
         else
             j=i
         fi
+    fi
+
+    verify=$(openssl verify -verbose -CAfile ../Tally/my-ca.crt "voter${j}.crt")
+    if [ "${verify}" = "voter${j}.crt: OK" ]; then
+        echo "Verified Voter${j} Certificate OK"
+    else
+        echo "Verification Voter${j} Certificate Failure"
+        clear_voter=1
+    fi
+
+    verify2=$(openssl x509 -noout -modulus -in "voter${j}.crt" | openssl md5)
+    verify3=$(openssl rsa -noout -modulus -in "voter${j}_public.key" | openssl md5)
+
+    if [ "${verify2}" != "${verify3}" ]; then
+        echo "Verification Voter${j} Public Key Failure"
+        clear_voter=1
     fi
 
     listVoter_j=$(find -name "signature_voter${j}*")
@@ -123,6 +167,11 @@ do
             #echo "data ${signDate_lixo}" #debug
             signDate=$(echo "${signDate_lixo}" | cut -d "." -f1)
             #echo "data: ${signDate}" #debug
+            if [ "$clear_voter" = "1" ]; then
+                rm -r $voteName
+                rm "signature_voter${j}_${m}_${signDate}.txt"
+                echo "Corrupted Key/Certificate: Removed voter${j} signature and votes."
+            fi
             if [ "$signDate" -ne "$lastVoteDate" ]; then
                 # remove this vote
                 echo "Removed voter${j}'s vote for candidate${m} on ${signDate}." #debug
@@ -296,3 +345,5 @@ openssl base64 -in sign.sha256 -out $sign_checksum_total                        
 rm sign.sha256
 mv $checksum_total ../Counter
 mv $sign_checksum_total ../Counter
+
+mv ../Tally/tally_public.key ../Counter
