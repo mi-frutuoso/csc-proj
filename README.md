@@ -199,51 +199,69 @@ After this, we should have the directory organized in the following way (assumin
 ````
 .
 ├── Admin
-│   ├── my-ca.crt          
-│   ├── my-ca.key          
-│   ├── my-ca.srl          
-│   ├── key_generator                       # executable
-│   ├── weights_encryptor                   # executable
-│   ├── Make_Shares                         # executable 
-│   └── election_public.key          
+│   ├── cryptWeight_voter001.txt
+│   ├── ...
+│   ├── cryptWeight_voterN.txt
+│   ├── election_public.key
+│   ├── key_generator                       # executable
+│   ├── Make_Shares                         # executable
+│   ├── my-ca.crt
+│   ├── my-ca.key
+│   ├── my-ca.srl
+│   ├── tally.crt
+│   ├── tally.csr
+│   ├── weightlist.txt
+│   └── weights_encryptor                   # executable
 ├── BallotBox
 ├── Counter
-│   ├── election_private_encrypted.key          
-│   ├── counter.sh                          # bash
-│   └── Join_Shares                         # executable
-├── Tally      
-│   ├── tally.sh                            # bash
-│   ├── calculator                          # executable
-│   ├── sumcheck                            # executable
-│   ├── cryptWeight_voter001.txt       
-│   ├── ...       
-│   └── cryptWeight_voterN.txt   
-├── Trustees                  
-│   ├── trustee1
-│   │   └── Share1.txt          
-│   ├── ...                  
-│   └── trusteeM          
-│       └── ShareM.txt          
-└── Voters                  
-    ├── voter1
-    │   ├── my-ca.crt          
-    │   ├── voter001.crt          
-    │   ├── voter001.csr          
-    │   ├── voter001.pem
-    │   ├── election_public.key
-    │   ├── weights_encryptor               # executable
-    │   └── voter.sh                        # bash 
-    ├── ...           
-    └── voterN                  
-        ├── my-ca.crt          
-        ├── voterN.crt          
-        ├── voterN.csr          
-        ├── voterN.pem
-        ├── election_public.key
-        ├── weights_encryptor               # executable        
-        └── voter.sh                        # bash 
-
-````
+│   ├── counter.sh                          # bash
+│   ├── decrypt                             # executable
+│   ├── election_private_encrypted.key
+│   ├── Join_Shares                         # executable
+│   ├── my-ca.crt
+│   └── tally.crt
+├── Tally
+│   ├── calculator                          # executable
+│   ├── cryptWeight_voter001.txt
+│   ├── ...
+│   ├── cryptWeight_voterN.txt
+│   ├── my-ca.crt
+│   ├── sign_cryptWeight_voter001.txt
+│   ├── ...
+│   ├── sign_cryptWeight_voterN.txt
+│   ├── sumcheck                            # executable
+│   ├── tally.crt
+│   ├── tally_private.key
+│   ├── tally_public.key
+│   ├── tally.sh                            # bash
+│   └── weight_public.key
+├── Trustees
+│   ├── trustee1
+│   │   └── Share1.txt
+│   ├── ...
+│   └── trusteeM
+│       └── ShareM.txt
+└── Voters
+    ├── voter001
+    │   ├── election_public.key
+    │   ├── my-ca.crt
+    │   ├── voter001.crt
+    │   ├── voter001.csr
+    │   ├── voter001.pem
+    │   ├── voter001_public.key
+    │   ├── voter.sh                        # bash
+    │   └── weights_encryptor               # executable
+    ├── ... 
+    └── voterN
+        ├── election_public.key
+        ├── my-ca.crt
+        ├── voterN.crt
+        ├── voterN.csr
+        ├── voterN.pem
+        ├── voterN_public.key
+        ├── voter.sh                        # bash
+        └── weights_encryptor               # executable
+ ````
 
 You may also notice that inside the `/Admin` folder, there's also a file called `weightlist.txt` containing the list of the generated weights for each voter, only for debug purposes.
 
