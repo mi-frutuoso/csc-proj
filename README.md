@@ -58,21 +58,21 @@ Corresponds to the very first steps of the setup of the election tally and build
   - assignment (in a random way), encryption and sign of weigths to each voter (`./weights_encryptor`)(`openssl`);
     
     - `./weights_encryptor` is a `C++` executable program based on the `Microsoft SEAL` library. It takes an integer as input argument. Outputs the homomorphic encryption of that integer;
-  - generation of key pairs and corresponding certificate for for the Tally (`openssl`).
+  - generation of key pairs and corresponding certificate for the Tally (`openssl`).
 
 ### Voter :: `voter.sh`
 
 Command line application that determines the voting decision by the voter (user), but also performs these steps:
 
-  - verification of validity of the certificate and the keys (`openssl verify` and `openssl -modulus`);
+  - verification of validity of the certificate and the keys received from the Admin (`openssl verify` and `openssl -modulus`);
 
-    -neede to verify the voter certificate based on the CA certificate (`my-ca.crt`) and then verify the public and private keys based on the voter certificate;
+    - verify the voter certificate based on the CA certificate (`my-ca.crt`) and then verify the public and private keys based on the voter certificate;
 
   - encryption of the votes (`./weights_encryptor`);
 
   - attach the day and time of the moment the vote was made (`date`);
 
-  - signature of votes using voter private key(`openssl -sign`);
+  - signature of votes using voter private key (`openssl -sign`);
 
   - cast of votes to ballot (`cp`);
 
