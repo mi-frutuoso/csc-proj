@@ -30,6 +30,7 @@ This CSC Project was developed by Group 13, composed by the students:
   - [Step 2: Run Voter(s)](#step-2--run-voters)
   - [Step 3: Run Tally official](#step-3--run-tally-official)
   - [Step 4: Run Counter](#step-4--run-counter)
+  - [Clear election environment](#clear-election-environment)
 
 
 ## Entity files
@@ -299,3 +300,13 @@ Finally, to validate the election and possibly reveal the results, we may execut
 ````
 $ sudo bash counter.sh
 ````
+
+## Clear election environment
+
+After the election process, we may reset the environment and clear all the folders and files created by executing:
+
+````
+$ sudo bash clear_all.sh
+````
+
+Which will restore the parent directory to the initial state, before running the `admin`.
