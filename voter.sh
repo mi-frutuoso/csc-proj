@@ -109,5 +109,5 @@ done
 certificate="${voter}.crt"
 public_key="${voter}_public.key"
 
-mv $certificate ../../BallotBox
-mv $public_key ../../BallotBox
+cp $certificate ../../BallotBox
+cp $public_key ../../BallotBox

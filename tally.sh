@@ -177,6 +177,15 @@ do
                 echo "Removed voter${j}'s vote for candidate${m} on ${signDate}." #debug
                 rm ${voteName}
                 rm "signature_voter${j}_${m}_${signDate}.txt"
+
+                # check if nCandidates is the same
+                # if there are no votes for cand_i left, decrement nCandidates
+                remainingVotesCand_i=$(find -name "*_cand${m}*")
+                if [ -z "$remainingVotesCand_i" ]
+                then
+                    nCandidates=$((nCandidates-1))
+                    echo "$nCandidates"
+                fi
             fi
         done
     done
@@ -237,9 +246,9 @@ do
         verify=$(openssl dgst -sha256 -verify ${weightPublicKeyFile} -signature sign.sha256 ${weight_file})
         rm sign.sha256
         if [ "${verify}" = "Verified OK" ]; then
-            echo "Verified ${weight_file} OK"
+            echo "Verified cryptWeight_voter${m} OK"
         else
-            echo "Verification Failure - ${weight_file}"
+            echo "Verification Failure - cryptWeight_voter${m}"
             rm ${weight_file}
             continue
         fi

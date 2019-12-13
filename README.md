@@ -162,11 +162,11 @@ Here we explain how to setup the application and expose the commands needed to e
 
 Before we start, we should decide the number of:
 
-- voters;
+- candidates;
 
 - trustees;
 
-- candidates?;
+- voters;
 
 - shares needed to restore a key;
 
